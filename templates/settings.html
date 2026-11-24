@@ -11,6 +11,7 @@
         <section class="panel settings-panel">
           <div class="settings-title"><span class="settings-icon"><i class="fa-solid fa-user-pen"></i></span><div><h2>Username & Profile</h2><p class="muted">Aya ni amakuru ukoresha winjira muri konti yawe.</p></div></div>
           <form method="POST" class="settings-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="action" value="profile">
             <label for="full_name">Izina ryawe</label><input id="full_name" name="full_name" type="text" value="{{ current_user.full_name }}" required maxlength="120">
             <label for="email">Username / Email</label><input id="email" name="email" type="email" value="{{ current_user.email }}" required maxlength="160">
@@ -20,6 +21,7 @@
         <section class="panel settings-panel">
           <div class="settings-title"><span class="settings-icon"><i class="fa-solid fa-shield-halved"></i></span><div><h2>Change Password</h2><p class="muted">Koresha password yawe ya kera kugira ngo ushyireho nshya.</p></div></div>
           <form method="POST" class="settings-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="action" value="password">
             <label for="current_password">Password ukoresha ubu</label><input id="current_password" name="current_password" type="password" autocomplete="current-password" required>
             <label for="new_password">Password nshya</label><input id="new_password" name="new_password" type="password" autocomplete="new-password" minlength="8" required>
