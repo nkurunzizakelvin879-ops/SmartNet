@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Settings | SmartNet{% endblock %}
+{% block content %}
+<div class="app-shell">
+  {% include '_sidebar.html' %}
+  <main class="main-area">
+    <header class="topbar"><button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button><div><b>Account Settings</b><small>Hindura amakuru yo kwinjira muri SmartNet</small></div><span class="user-pill">{{ current_user.email }}</span></header>
+    <section class="page-content">
+      <div class="page-heading"><p class="eyebrow">ACCOUNT & SECURITY</p><h1>Settings</h1><p class="muted">Hindura username/email yawe cyangwa ushyireho password nshya.</p></div>
+      <div class="settings-grid">
+        <section class="panel settings-panel">
+          <div class="settings-title"><span class="settings-icon"><i class="fa-solid fa-user-pen"></i></span><div><h2>Username & Profile</h2><p class="muted">Aya ni amakuru ukoresha winjira muri konti yawe.</p></div></div>
+          <form method="POST" class="settings-form">
+            <input type="hidden" name="action" value="profile">
+            <label for="full_name">Izina ryawe</label><input id="full_name" name="full_name" type="text" value="{{ current_user.full_name }}" required maxlength="120">
+            <label for="email">Username / Email</label><input id="email" name="email" type="email" value="{{ current_user.email }}" required maxlength="160">
+            <button class="primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Bika impinduka</button>
+          </form>
+        </section>
+        <section class="panel settings-panel">
+          <div class="settings-title"><span class="settings-icon"><i class="fa-solid fa-shield-halved"></i></span><div><h2>Change Password</h2><p class="muted">Koresha password yawe ya kera kugira ngo ushyireho nshya.</p></div></div>
+          <form method="POST" class="settings-form">
+            <input type="hidden" name="action" value="password">
+            <label for="current_password">Password ukoresha ubu</label><input id="current_password" name="current_password" type="password" autocomplete="current-password" required>
+            <label for="new_password">Password nshya</label><input id="new_password" name="new_password" type="password" autocomplete="new-password" minlength="8" required>
+            <label for="confirm_password">Subiramo password nshya</label><input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" minlength="8" required>
+            <p class="note">Password igomba kugira nibura inyuguti 8. Nyuma yo kuyihindura, uzasohoka maze wongere winjire ukoresheje password nshya.</p>
+            <button class="primary" type="submit"><i class="fa-solid fa-lock"></i> Hindura password</button>
+          </form>
+        </section>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}
