@@ -1,33 +1,60 @@
 # SmartNet — Network Management
 
+SmartNet ni urubuga rwa Flask rwo gucunga ibikoresho bya network n'abakiriya.
+
 ## Ibirimo
-- Login ya admin na dashboard
-- Device inventory: kongeramo, kureba, guhindura status no gusiba
+- Login na dashboard ya admin
+- Device inventory: kongeramo, kureba, guhindura status no gusiba devices
 - Customer management: kongeramo, kureba no gusiba abakiriya
-- Account Settings: guhindura izina, username/email na password ukoresheje page ya Settings
-- Monthly fee summary
-- Responsive navy/cyan interface na network icons
-- SQLite default; MySQL ishobora gukoreshwa ukoresheje DATABASE_URL
+- Account settings: guhindura izina, email na password
+- Monthly fee summary (RWF)
+- SQLite ku buryo busanzwe; MySQL ishobora gukoreshwa ukoresheje `DATABASE_URL`
+- CSRF protection ku mafomu yose ya POST
+- Session cookies zirinzwe na HTTP-only na SameSite
 
 ## Gukoresha kuri Windows
-1. Kuramo ZIP, fungura PowerShell muri folder ya `SmartNet`.
-2. `py -m venv .venv`
-3. `\.venv\Scripts\Activate.ps1`
-4. `python -m pip install --upgrade pip`
-5. `pip install -r requirements.txt`
-6. Kora copy ya `.env.example` uyite `.env`, uhindure SECRET_KEY.
-7. `python run.py`
-8. Fungura http://127.0.0.1:5000
+1. Kuramo ZIP cyangwa clone repository, hanyuma fungura PowerShell muri folder ya `SmartNet`.
+2. Kora virtual environment:
+   ```powershell
+   py -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   ```
+3. Shyiramo dependencies:
+   ```powershell
+   python -m pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+4. Kora kopi ya environment file:
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+5. Fungura `.env`, ushyiremo `SECRET_KEY` ikomeye. Ushobora kuyibyaza ukoresheje:
+   ```powershell
+   python -c "import secrets; print(secrets.token_hex(32))"
+   ```
+   Ushyireho na `ADMIN_PASSWORD` mbere yo gutangira bwa mbere niba ushaka guhitamo password ya admin. Ntushyireho password yoroshye.
+6. Tangiza:
+   ```powershell
+   python run.py
+   ```
+7. Fungura http://127.0.0.1:5000
 
-## Login ya mbere
-Email: `admin@smartnet.local`
-Password: `ChangeMe123!`
+## Konti ya mbere ya admin
+- Email isanzwe: `admin@smartnet.local` (ushobora kuyihindura ukoresheje `ADMIN_EMAIL` muri `.env`).
+- Niba `ADMIN_PASSWORD` itashyizweho, SmartNet ikora password y'agateganyo ikomeye ikayerekana muri terminal bwa mbere gusa. Yibike, winjire, hanyuma uhite uyihindura muri **Settings**.
+- Niba admin asanzwe ari muri database, SmartNet ntihindura password ye cyangwa ngo isibe amakuru ye.
 
-Hindura iyi password muri **Settings** nyuma yo kwinjira. Muri Settings ushobora no guhindura username/email. Guhindura password bisaba kwemeza password ya kera; password nshya igomba kugira nibura inyuguti 8.
+## MySQL (optional)
+Kora database yawe, hanyuma shyira `DATABASE_URL` muri `.env`, urugero:
+`mysql+pymysql://username:password@127.0.0.1:3306/smartnet_db?charset=utf8mb4`
+Encode special characters ziri muri password ya database.
 
-## MySQL
-Kora database yawe, hanyuma shyira DATABASE_URL muri `.env` ukoresheje format iri muri `.env.example`. Encode special characters ziri muri password.
+## Igenamiterere rya production
+- Shyiraho `SECRET_KEY` ikomeye kandi uyigire ibanga.
+- Shyiraho `COOKIE_SECURE=1` gusa igihe urubuga rukorera kuri HTTPS.
+- `FLASK_DEBUG` isanzwe ni `0`; ntukayishyire kuri `1` kuri public server.
+- Koresha WSGI server ibereye production; Flask development server igenewe development gusa.
+- Bika backup ya database buri gihe mbere yo gukora migrations cyangwa impinduka zikomeye.
 
-## Icyitonderwa
-Device status muri iyi version ihindurwa n'umukoresha; ntirakora automatic ping cyangwa live monitoring. Forms zikeneye CSRF protection, admin user management na migrations mbere yo gushyirwa kuri public production server. Server background image, Font Awesome na Google Fonts bisaba internet.
-"# SmartNet" 
+## Ibitari byashyirwamo
+Device status muri iyi version ihindurwa n'umukoresha; automatic ping/live monitoring, admin user management na database migrations biracyategereje. Background images, Font Awesome na Google Fonts bishobora gusaba internet.
