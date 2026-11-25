@@ -2,46 +2,15 @@ from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db
-
-class User(UserMixin, db.Model):
-    id=db.Column(db.Integer, primary_key=True)
-    full_name=db.Column(db.String(120), nullable=False)
-    email=db.Column(db.String(160), unique=True, nullable=False)
-    password_hash=db.Column(db.String(255), nullable=False)
-    role=db.Column(db.String(30), default="admin")
-    def set_password(self,p): self.password_hash=generate_password_hash(p)
-    def check_password(self,p): return check_password_hash(self.password_hash,p)
-
+class User(UserMixin,db.Model):
+ id=db.Column(db.Integer,primary_key=True);full_name=db.Column(db.String(120),nullable=False);email=db.Column(db.String(160),unique=True,nullable=False);password_hash=db.Column(db.String(255),nullable=False);role=db.Column(db.String(30),default="admin")
+ def set_password(self,p):self.password_hash=generate_password_hash(p)
+ def check_password(self,p):return check_password_hash(self.password_hash,p)
 class Device(db.Model):
-    id=db.Column(db.Integer, primary_key=True)
-    name=db.Column(db.String(120), nullable=False)
-    device_type=db.Column(db.String(50), nullable=False)
-    ip_address=db.Column(db.String(45))
-    location=db.Column(db.String(160))
-    status=db.Column(db.String(20), default="Unknown", nullable=False)
-    notes=db.Column(db.Text)
-    created_at=db.Column(db.DateTime, default=datetime.utcnow)
-    last_checked=db.Column(db.DateTime)
-    last_seen=db.Column(db.DateTime)
-    latency_ms=db.Column(db.Float)
-    monitoring_enabled=db.Column(db.Boolean, default=True, nullable=False)
-
+ id=db.Column(db.Integer,primary_key=True);name=db.Column(db.String(120),nullable=False);device_type=db.Column(db.String(50),nullable=False);ip_address=db.Column(db.String(45));location=db.Column(db.String(160));status=db.Column(db.String(20),default="Unknown",nullable=False);notes=db.Column(db.Text);created_at=db.Column(db.DateTime,default=datetime.utcnow);last_checked=db.Column(db.DateTime);last_seen=db.Column(db.DateTime);latency_ms=db.Column(db.Float);monitoring_enabled=db.Column(db.Boolean,default=True,nullable=False)
 class MonitoringAlert(db.Model):
-    id=db.Column(db.Integer, primary_key=True)
-    device_id=db.Column(db.Integer, db.ForeignKey("device.id"), nullable=False)
-    device_name=db.Column(db.String(120), nullable=False)
-    ip_address=db.Column(db.String(45))
-    old_status=db.Column(db.String(20))
-    new_status=db.Column(db.String(20), nullable=False)
-    created_at=db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    device=db.relationship("Device", backref=db.backref("alerts", lazy=True))
-
+ id=db.Column(db.Integer,primary_key=True);device_id=db.Column(db.Integer,db.ForeignKey("device.id"),nullable=False);device_name=db.Column(db.String(120),nullable=False);ip_address=db.Column(db.String(45));old_status=db.Column(db.String(20));new_status=db.Column(db.String(20),nullable=False);created_at=db.Column(db.DateTime,default=datetime.utcnow,nullable=False);device=db.relationship("Device",backref=db.backref("alerts",lazy=True))
 class Customer(db.Model):
-    id=db.Column(db.Integer, primary_key=True)
-    full_name=db.Column(db.String(120), nullable=False)
-    email=db.Column(db.String(160))
-    phone=db.Column(db.String(40))
-    plan=db.Column(db.String(100))
-    monthly_fee=db.Column(db.Float, default=0)
-    status=db.Column(db.String(20), default="Active")
-    created_at=db.Column(db.DateTime, default=datetime.utcnow)
+ id=db.Column(db.Integer,primary_key=True);full_name=db.Column(db.String(120),nullable=False);email=db.Column(db.String(160));phone=db.Column(db.String(40));plan=db.Column(db.String(100));monthly_fee=db.Column(db.Float,default=0);status=db.Column(db.String(20),default="Active");created_at=db.Column(db.DateTime,default=datetime.utcnow);payments=db.relationship("Payment",backref="customer",cascade="all, delete-orphan",lazy=True)
+class Payment(db.Model):
+ id=db.Column(db.Integer,primary_key=True);customer_id=db.Column(db.Integer,db.ForeignKey("customer.id"),nullable=False);amount=db.Column(db.Float,nullable=False);billing_month=db.Column(db.String(7),nullable=False);payment_method=db.Column(db.String(40),default="Cash");reference=db.Column(db.String(120));notes=db.Column(db.Text);paid_at=db.Column(db.DateTime,default=datetime.utcnow,nullable=False)
