@@ -56,5 +56,13 @@ Encode special characters ziri muri password ya database.
 - Koresha WSGI server ibereye production; Flask development server igenewe development gusa.
 - Bika backup ya database buri gihe mbere yo gukora migrations cyangwa impinduka zikomeye.
 
+## Live Network Monitoring (branch feature/live-network-monitoring)
+- Kuri Devices, kanda **Check now** kugira ngo SmartNet ipinge IP address.
+- Status, latency (ms), last check na last seen bibikwa.
+- Alert history iboneka kuri Alerts, igihe status yahindutse (Unknown initial status ntibara alert).
+- ICMP/ping ishobora kuba blocked na firewall ya device cyangwa network; Offline hano ntibihamya ko device yazimye.
+- Ubu checks ni manual (Check now); recurring background monitoring iracyari mu phase ikurikira.
+- Startup migration yongeramo monitoring columns mu table ya device; backup database mbere yo upgrade.
+
 ## Ibitari byashyirwamo
-Device status muri iyi version ihindurwa n'umukoresha; automatic ping/live monitoring, admin user management na database migrations biracyategereje. Background images, Font Awesome na Google Fonts bishobora gusaba internet.
+Recurring background monitoring, admin user management na database migrations zikomeye biracyategereje. Background images, Font Awesome na Google Fonts bishobora gusaba internet.
