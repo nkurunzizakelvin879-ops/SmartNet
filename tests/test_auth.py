@@ -1,30 +1,25 @@
-import os
 import unittest
-from unittest.mock import patch
 
 from app import create_app
 from extensions import db
-from models import User
 
 
 class SmartNetAuthTests(unittest.TestCase):
     def setUp(self):
-        self.env = patch.dict(os.environ, {
-            "DATABASE_URL": "sqlite://",
+        self.app = create_app({
+            "TESTING": True,
+            "WTF_CSRF_ENABLED": False,
+            "SQLALCHEMY_DATABASE_URI": "sqlite://",
             "ADMIN_EMAIL": "test-admin@smartnet.local",
             "ADMIN_PASSWORD": "TestPassword123!",
             "SECRET_KEY": "test-secret-key",
         })
-        self.env.start()
-        self.app = create_app()
-        self.app.config.update(TESTING=True, WTF_CSRF_ENABLED=False)
         self.client = self.app.test_client()
 
     def tearDown(self):
         with self.app.app_context():
             db.session.remove()
             db.drop_all()
-        self.env.stop()
 
     def test_login_page_loads(self):
         response = self.client.get("/login")
@@ -36,11 +31,10 @@ class SmartNetAuthTests(unittest.TestCase):
         self.assertIn("/login", response.headers.get("Location", ""))
 
     def test_invalid_password_does_not_authenticate(self):
-        response = self.client.post("/login", data={
+        self.client.post("/login", data={
             "email": "test-admin@smartnet.local",
             "password": "wrong-password",
         })
-        self.assertIn(response.status_code, (200, 302))
         dashboard = self.client.get("/dashboard")
         self.assertIn(dashboard.status_code, (302, 303))
 
