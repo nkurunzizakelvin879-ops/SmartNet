@@ -8,24 +8,24 @@
 <div class="page-content">
 <div class="page-heading"><div><p class="eyebrow">OVERVIEW</p><h1>Network Dashboard</h1><p class="muted">Welcome back. Here's your network overview.</p></div></div>
 <section class="metrics-grid dashboard-metrics">
-<article class="metric"><i class="fa-solid fa-network-wired"></i><small>Total devices</small><strong>{{ total_devices }}</strong></article>
-<article class="metric"><i class="fa-solid fa-circle-check"></i><small>Online devices</small><strong>{{ online_devices }}</strong></article>
-<article class="metric"><i class="fa-solid fa-circle-xmark"></i><small>Offline devices</small><strong>{{ offline_devices }}</strong></article>
+<article class="metric"><i class="fa-solid fa-network-wired"></i><small>Total devices</small><strong id="totalDevices">{{ total_devices }}</strong></article>
+<article class="metric"><i class="fa-solid fa-circle-check"></i><small>Online devices</small><strong id="onlineDevices">{{ online_devices }}</strong></article>
+<article class="metric"><i class="fa-solid fa-circle-xmark"></i><small>Offline devices</small><strong id="offlineDevices">{{ offline_devices }}</strong></article>
 <article class="metric"><i class="fa-solid fa-users"></i><small>Total customers</small><strong>{{ total_customers }}</strong></article>
 </section>
 <section class="content-grid dashboard-summary">
 <article class="panel"><h2><i class="fa-solid fa-chart-pie"></i> Network status</h2>
-<div class="status-summary"><div><span class="status-dot online"></span> Online <strong>{{ online_devices }}</strong></div><div><span class="status-dot offline"></span> Offline <strong>{{ offline_devices }}</strong></div><div><span class="status-dot unknown"></span> Unknown <strong>{{ unknown_devices }}</strong></div></div>
-<p class="note">These values reflect saved device statuses. Live monitoring is not enabled yet.</p><a class="text-link" href="{{ url_for('devices.index') }}">View devices →</a></article>
+<div class="status-summary"><div><span class="status-dot online"></span> Online <strong id="statusOnline">{{ online_devices }}</strong></div><div><span class="status-dot offline"></span> Offline <strong id="statusOffline">{{ offline_devices }}</strong></div><div><span class="status-dot unknown"></span> Unknown <strong id="statusUnknown">{{ unknown_devices }}</strong></div></div>
+<p class="note" id="liveStatusNote">Live checks will run while this dashboard is open, every 60 seconds.</p><a class="text-link" href="{{ url_for('devices.index') }}">View devices →</a> · <a class="text-link" href="{{ url_for('monitoring.alerts') }}">Alerts →</a></article>
 <article class="panel"><h2><i class="fa-solid fa-wallet"></i> Monthly revenue</h2><strong class="revenue">{{ "{:,.0f}".format(monthly_revenue or 0) }} RWF</strong><p class="muted">Sum of monthly fees for active customers.</p><a class="text-link" href="{{ url_for('customers.index') }}">Manage customers →</a></article>
 </section>
-<section class="metrics-grid customer-mini-grid">
-<article class="metric"><i class="fa-solid fa-user-check"></i><small>Active customers</small><strong>{{ active_customers }}</strong></article>
-<article class="metric"><i class="fa-solid fa-user-slash"></i><small>Other customer statuses</small><strong>{{ inactive_customers }}</strong></article>
-</section>
+<section class="metrics-grid customer-mini-grid"><article class="metric"><i class="fa-solid fa-user-check"></i><small>Active customers</small><strong>{{ active_customers }}</strong></article><article class="metric"><i class="fa-solid fa-user-slash"></i><small>Other customer statuses</small><strong>{{ inactive_customers }}</strong></article></section>
 <section class="content-grid dashboard-recent">
 <article class="panel table-panel"><h2><i class="fa-solid fa-clock"></i> Recently added devices</h2>{% if recent_devices %}<div class="table-scroll"><table><thead><tr><th>Name</th><th>Type</th><th>IP address</th><th>Status</th></tr></thead><tbody>{% for device in recent_devices %}<tr><td>{{ device.name }}</td><td>{{ device.device_type }}</td><td>{{ device.ip_address or '—' }}</td><td><span class="status-tag {{ device.status|lower }}">{{ device.status }}</span></td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="empty-state">No devices have been added yet.</p>{% endif %}<a class="text-link table-link" href="{{ url_for('devices.index') }}">All devices →</a></article>
 <article class="panel table-panel"><h2><i class="fa-solid fa-user-plus"></i> Recently added customers</h2>{% if recent_customers %}<div class="table-scroll"><table><thead><tr><th>Name</th><th>Plan</th><th>Status</th></tr></thead><tbody>{% for customer in recent_customers %}<tr><td>{{ customer.full_name }}</td><td>{{ customer.plan or '—' }}</td><td><span class="status-tag {{ customer.status|lower }}">{{ customer.status }}</span></td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="empty-state">No customers have been added yet.</p>{% endif %}<a class="text-link table-link" href="{{ url_for('customers.index') }}">All customers →</a></article>
 </section>
 </div></main></div>
 {% endblock %}
+{% block scripts %}<script>
+(()=>{let busy=false;async function refresh(){if(busy)return;busy=true;const note=document.getElementById('liveStatusNote');try{const r=await fetch('{{ url_for("monitoring.live_status") }}',{credentials:'same-origin'});if(!r.ok)throw new Error('Request failed');const payload=await r.json();let on=0,off=0,unk=0;for(const d of payload.devices){if(d.status==='Online')on++;else if(d.status==='Offline')off++;else unk++;}document.getElementById('onlineDevices').textContent=on;document.getElementById('offlineDevices').textContent=off;document.getElementById('statusOnline').textContent=on;document.getElementById('statusOffline').textContent=off;document.getElementById('statusUnknown').textContent=unk;document.getElementById('totalDevices').textContent=payload.devices.length;note.textContent='Last live check: '+new Date(payload.checked_at).toLocaleString()+' · refreshes every 60 seconds';}catch(e){note.textContent='Live check failed. Please refresh or verify network connectivity.';}finally{busy=false;}}refresh();setInterval(refresh,60000);})();
+</script>{% endblock %}
