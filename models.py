@@ -2,6 +2,7 @@ from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db
+
 class User(UserMixin, db.Model):
     id=db.Column(db.Integer, primary_key=True)
     full_name=db.Column(db.String(120), nullable=False)
@@ -10,6 +11,7 @@ class User(UserMixin, db.Model):
     role=db.Column(db.String(30), default="admin")
     def set_password(self,p): self.password_hash=generate_password_hash(p)
     def check_password(self,p): return check_password_hash(self.password_hash,p)
+
 class Device(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     name=db.Column(db.String(120), nullable=False)
@@ -19,6 +21,21 @@ class Device(db.Model):
     status=db.Column(db.String(20), default="Unknown", nullable=False)
     notes=db.Column(db.Text)
     created_at=db.Column(db.DateTime, default=datetime.utcnow)
+    last_checked=db.Column(db.DateTime)
+    last_seen=db.Column(db.DateTime)
+    latency_ms=db.Column(db.Float)
+    monitoring_enabled=db.Column(db.Boolean, default=True, nullable=False)
+
+class MonitoringAlert(db.Model):
+    id=db.Column(db.Integer, primary_key=True)
+    device_id=db.Column(db.Integer, db.ForeignKey("device.id"), nullable=False)
+    device_name=db.Column(db.String(120), nullable=False)
+    ip_address=db.Column(db.String(45))
+    old_status=db.Column(db.String(20))
+    new_status=db.Column(db.String(20), nullable=False)
+    created_at=db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    device=db.relationship("Device", backref=db.backref("alerts", lazy=True))
+
 class Customer(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     full_name=db.Column(db.String(120), nullable=False)
