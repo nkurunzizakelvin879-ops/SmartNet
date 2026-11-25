@@ -1,10 +1,17 @@
 from datetime import datetime
+import ipaddress
 from flask import Blueprint,render_template,request,redirect,url_for,flash
 from flask_login import login_required
 from models import Device, MonitoringAlert
 from extensions import db
 from monitoring_engine import ping_address
 bp=Blueprint("devices",__name__)
+def _valid_ip(value):
+    try:
+        ipaddress.ip_address(value)
+        return True
+    except ValueError:
+        return False
 @bp.get("/")
 @login_required
 def index(): return render_template("devices.html",devices=Device.query.order_by(Device.id.desc()).all())
@@ -14,6 +21,8 @@ def add():
     name=request.form.get("name","").strip(); kind=request.form.get("device_type","").strip()
     ip=request.form.get("ip_address","").strip()
     if not name or not kind: flash("Andika izina n'ubwoko bwa device.","danger")
+    elif ip and not _valid_ip(ip): flash("IP address wanditse ntabwo ari valid.","danger")
+    elif ip and Device.query.filter(Device.ip_address == ip).first(): flash("Iyi IP address isanzwe ikoreshwa n'indi device. Reba IP conflict.","warning")
     else:
         db.session.add(Device(name=name,device_type=kind,ip_address=ip or None,
           location=request.form.get("location","").strip(),status=request.form.get("status","Unknown"),
