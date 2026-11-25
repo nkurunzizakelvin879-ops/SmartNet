@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, jsonify, request
 from flask_login import login_required
+from sqlalchemy import or_
 from models import MonitoringAlert, Device
 from extensions import db
 from monitoring_engine import ping_address
@@ -13,16 +14,13 @@ bp = Blueprint("monitoring", __name__)
 def alerts():
     search = request.args.get("q", "").strip()
     status = request.args.get("status", "").strip()
-    page = request.args.get("page", 1, type=int)
-    page = max(page or 1, 1)
+    page = max(request.args.get("page", 1, type=int) or 1, 1)
 
     query = MonitoringAlert.query
     if search:
         term = f"%{search}%"
-        query = query.filter(
-            db.or_(MonitoringAlert.device_name.ilike(term),
-                   MonitoringAlert.ip_address.ilike(term))
-        )
+        query = query.filter(or_(MonitoringAlert.device_name.ilike(term),
+                                 MonitoringAlert.ip_address.ilike(term)))
     if status in ("Online", "Offline"):
         query = query.filter(MonitoringAlert.new_status == status)
 
