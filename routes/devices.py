@@ -14,7 +14,13 @@ def _valid_ip(value):
         return False
 @bp.get("/")
 @login_required
-def index(): return render_template("devices.html",devices=Device.query.order_by(Device.id.desc()).all())
+def index():
+    devices=Device.query.order_by(Device.id.desc()).all()
+    ips={}
+    for d in devices:
+        if d.ip_address: ips.setdefault(d.ip_address,[]).append(d.id)
+    conflicts={ip for ip,ids in ips.items() if len(ids)>1}
+    return render_template("devices.html",devices=devices,conflicts=conflicts)
 @bp.post("/add")
 @login_required
 def add():
