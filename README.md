@@ -61,7 +61,10 @@ Encode special characters ziri muri password ya database.
 - Status, latency (ms), last check na last seen bibikwa.
 - Alert history iboneka kuri Alerts, igihe status yahindutse (Unknown initial status ntibara alert).
 - ICMP/ping ishobora kuba blocked na firewall ya device cyangwa network; Offline hano ntibihamya ko device yazimye.
-- Ubu checks ni manual (Check now); recurring background monitoring iracyari mu phase ikurikira.
+- Background monitoring: optional worker ishobora kugenzura devices buri 60s app ikora, Dashboard itafunguye.
+- Kugira ngo uyifungure, shyira `SMARTNET_BACKGROUND_MONITORING=1` muri `.env`; interval ihindurwa na `MONITORING_INTERVAL_SECONDS=60` (minimum 30s).
+- Worker yagenewe single-process local deployment; ntuyifungure kuri multi-worker/multi-instance server kuko workers zishobora gukuba checks.
+- Worker ikora gusa igihe `python run.py` itangije app; ntikomeza app imaze guhagarara.
 - Startup migration yongeramo monitoring columns mu table ya device; backup database mbere yo upgrade.
 
 ## Ibitari byashyirwamo
