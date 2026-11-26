@@ -57,3 +57,12 @@ Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular
 - Record payments by billing month, amount and notes; view the latest 100 payment records.
 - Payment records are stored separately from customer details. Existing database data is preserved; SQLAlchemy `create_all()` creates the new table on startup.
 - Customer deletion also deletes their associated payment history. Payment entries are not automatically treated as invoices or calculated arrears.
+
+
+## Phase 6: Admin accounts and activity
+
+- Admin-only account management page to create Admin or Staff accounts and delete accounts.
+- Server-enforced admin role check on this page.
+- Prevents admins from deleting their own account or the last remaining admin.
+- Account creation/deletion actions are recorded in ActivityLog.
+- Existing tables/data are preserved; `db.create_all()` creates the new table on startup.
