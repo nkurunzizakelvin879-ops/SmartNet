@@ -74,3 +74,10 @@ Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular
 - When a previously Offline device returns Online, its open offline alert is resolved.
 - Authenticated notification center displays alert history and allows acknowledgement.
 - Alert data is added without deleting existing records; startup table creation is additive.
+
+
+## Phase 8: Network analytics
+
+- Ping samples are recorded from both background monitoring and manual scans (including failed checks).
+- Authenticated analytics page summarizes the last 24 hours, per-device availability, average latency, and historical sample trends.
+- Analytics records are additive and stored in PingSample; they are not currently automatically purged.
