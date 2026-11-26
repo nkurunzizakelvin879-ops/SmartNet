@@ -40,3 +40,11 @@ Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular
 - Dashboard totals and monthly active-customer revenue update automatically approximately every 15 seconds without reloading the page.
 - A live-updated timestamp indicates when the dashboard refresh succeeded.
 - The dashboard overview endpoint is authenticated and returns summary JSON for the logged-in user.
+
+
+## Phase 4: Device management improvements
+
+- Search registered devices by name, IP address, type, location, or row text.
+- Filter the table by status and device type.
+- Edit device name, type, IP address, location, and notes.
+- Existing manual scan and periodic status refresh remain available.
