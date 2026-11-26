@@ -95,3 +95,9 @@ Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular
 - Added automated tests for staff deletion restrictions.
 
 - Administrator device/customer deletions now record actor email and target details in ActivityLog.
+
+
+## Phase 10: Monthly billing overview
+- Select a billing month to review each customer's monthly fee, payments received for that month, and remaining balance.
+- Provides totals for billed amount, received payments, and outstanding balance based on registered customer fees and payment entries.
+- This is a simple month-by-month balance estimate, not a formal invoice or accounting system; customers with no monthly fee are not charged automatically.
