@@ -3,6 +3,7 @@ from flask import Blueprint,render_template,request,redirect,url_for,flash
 from flask_login import login_required
 from models import Customer, Payment
 from extensions import db
+from routes.admin import admin_required
 bp=Blueprint("customers",__name__)
 
 @bp.get("/")
@@ -65,7 +66,7 @@ def payment(item_id):
     return redirect(url_for("customers.index"))
 
 @bp.post("/<int:item_id>/delete")
-@login_required
+@admin_required
 def delete(item_id):
     c=Customer.query.get_or_404(item_id); db.session.delete(c); db.session.commit()
     flash("Umukiriya n'amateka ye ya payment basibwe.","info"); return redirect(url_for("customers.index"))
