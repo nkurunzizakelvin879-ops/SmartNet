@@ -48,3 +48,12 @@ Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular
 - Filter the table by status and device type.
 - Edit device name, type, IP address, location, and notes.
 - Existing manual scan and periodic status refresh remain available.
+
+
+## Phase 5: Customer & billing improvements
+
+- Search and filter customers by status and key contact fields.
+- Edit customer details and monthly fee/status.
+- Record payments by billing month, amount and notes; view the latest 100 payment records.
+- Payment records are stored separately from customer details. Existing database data is preserved; SQLAlchemy `create_all()` creates the new table on startup.
+- Customer deletion also deletes their associated payment history. Payment entries are not automatically treated as invoices or calculated arrears.
