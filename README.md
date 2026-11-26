@@ -32,3 +32,11 @@ Set `DATABASE_URL`, for example: `mysql+pymysql://username:password@127.0.0.1:33
 
 ## Security / deployment
 Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular backups, and only monitor devices you administer or have permission to check. The Flask development server is for local development.
+
+
+## Phase 3: Live dashboard overview
+
+- Dashboard network-health percentage and status counts are recalculated from registered devices.
+- Dashboard totals and monthly active-customer revenue update automatically approximately every 15 seconds without reloading the page.
+- A live-updated timestamp indicates when the dashboard refresh succeeded.
+- The dashboard overview endpoint is authenticated and returns summary JSON for the logged-in user.
