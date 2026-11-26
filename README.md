@@ -1,60 +1,34 @@
 # SmartNet — Network Management
 
-SmartNet ni urubuga rwa Flask rwo gucunga ibikoresho bya network n'abakiriya.
+SmartNet ni Flask app yo gucunga ibikoresho bya network n'abakiriya.
 
 ## Ibirimo
 - Login na dashboard ya admin
-- Device inventory: kongeramo, kureba, guhindura status no gusiba devices
-- Customer management: kongeramo, kureba no gusiba abakiriya
-- Account settings: guhindura izina, email na password
-- Monthly fee summary (RWF)
-- SQLite ku buryo busanzwe; MySQL ishobora gukoreshwa ukoresheje `DATABASE_URL`
-- CSRF protection ku mafomu yose ya POST
-- Session cookies zirinzwe na HTTP-only na SameSite
+- Device inventory: add, status, delete
+- Customer management: add, view, delete
+- Account settings
+- Monthly fees (RWF)
+- SQLite by default; optional MySQL via `DATABASE_URL`
+- CSRF protection and protected session cookies
+- Network ping scan: online/offline, latency (ms), last successful check (UTC)
 
-## Gukoresha kuri Windows
-1. Kuramo ZIP cyangwa clone repository, hanyuma fungura PowerShell muri folder ya `SmartNet`.
-2. Kora virtual environment:
-   ```powershell
-   py -m venv .venv
-   .\.venv\Scripts\Activate.ps1
-   ```
-3. Shyiramo dependencies:
-   ```powershell
-   python -m pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
-4. Kora kopi ya environment file:
-   ```powershell
-   Copy-Item .env.example .env
-   ```
-5. Fungura `.env`, ushyiremo `SECRET_KEY` ikomeye. Ushobora kuyibyaza ukoresheje:
-   ```powershell
-   python -c "import secrets; print(secrets.token_hex(32))"
-   ```
-   Ushyireho na `ADMIN_PASSWORD` mbere yo gutangira bwa mbere niba ushaka guhitamo password ya admin. Ntushyireho password yoroshye.
-6. Tangiza:
-   ```powershell
-   python run.py
-   ```
-7. Fungura http://127.0.0.1:5000
+## Windows setup
+1. Clone or download the project and open PowerShell in its folder.
+2. `py -m venv .venv` then `..venv\Scripts\Activate.ps1`
+3. `pip install -r requirements.txt`
+4. Copy `.env.example` to `.env`; configure a strong `SECRET_KEY` and optionally `ADMIN_PASSWORD`.
+5. Run `python run.py` and visit http://127.0.0.1:5000
 
-## Konti ya mbere ya admin
-- Email isanzwe: `admin@smartnet.local` (ushobora kuyihindura ukoresheje `ADMIN_EMAIL` muri `.env`).
-- Niba `ADMIN_PASSWORD` itashyizweho, SmartNet ikora password y'agateganyo ikomeye ikayerekana muri terminal bwa mbere gusa. Yibike, winjire, hanyuma uhite uyihindura muri **Settings**.
-- Niba admin asanzwe ari muri database, SmartNet ntihindura password ye cyangwa ngo isibe amakuru ye.
+## Live network monitoring
+Login, open **Devices**, and click **Run network scan**. SmartNet pings only registered, valid IP addresses, using a bounded timeout. The scan stores online/offline status, approximate round-trip latency, and the last successful ping timestamp (UTC). Devices without IP addresses are skipped. A ping failure does not necessarily prove a device is down; firewalls may block ICMP.
+
+Monitoring database fields are added through a small, additive startup migration; existing device records and customer data are retained.
+
+## Initial administrator
+Default email: `admin@smartnet.local`. Set `ADMIN_PASSWORD` before first launch or save the temporary password printed to the terminal.
 
 ## MySQL (optional)
-Kora database yawe, hanyuma shyira `DATABASE_URL` muri `.env`, urugero:
-`mysql+pymysql://username:password@127.0.0.1:3306/smartnet_db?charset=utf8mb4`
-Encode special characters ziri muri password ya database.
+Set `DATABASE_URL`, for example: `mysql+pymysql://username:password@127.0.0.1:3306/smartnet_db?charset=utf8mb4`.
 
-## Igenamiterere rya production
-- Shyiraho `SECRET_KEY` ikomeye kandi uyigire ibanga.
-- Shyiraho `COOKIE_SECURE=1` gusa igihe urubuga rukorera kuri HTTPS.
-- `FLASK_DEBUG` isanzwe ni `0`; ntukayishyire kuri `1` kuri public server.
-- Koresha WSGI server ibereye production; Flask development server igenewe development gusa.
-- Bika backup ya database buri gihe mbere yo gukora migrations cyangwa impinduka zikomeye.
-
-## Ibitari byashyirwamo
-Device status muri iyi version ihindurwa n'umukoresha; automatic ping/live monitoring, admin user management na database migrations biracyategereje. Background images, Font Awesome na Google Fonts bishobora gusaba internet.
+## Security / deployment
+Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular backups, and only monitor devices you administer or have permission to check. The Flask development server is for local development.
