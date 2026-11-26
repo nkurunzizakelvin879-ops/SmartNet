@@ -80,4 +80,10 @@ Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular
 
 - Ping samples are recorded from both background monitoring and manual scans (including failed checks).
 - Authenticated analytics page summarizes the last 24 hours, per-device availability, average latency, and historical sample trends.
-- Analytics records are additive and stored in PingSample; they are not currently automatically purged.
+- Analytics samples are stored in PingSample and automatically pruned after 30 days to keep database growth bounded. The 24-hour analytics report remains unchanged.
+
+
+## Monitoring history maintenance
+- Automatically removes PingSample records older than 30 days after monitoring scans.
+- This maintenance only removes old monitoring samples; it does not remove devices, customers, payments, user accounts, or alert records.
+- The monitor's retention policy limits database growth while keeping a recent history for analytics.
