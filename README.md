@@ -93,3 +93,5 @@ Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular
 - Staff accounts cannot delete registered devices or customers (including their payment history).
 - Server-side admin authorization protects these delete endpoints; hiding controls in the interface is supplementary only.
 - Added automated tests for staff deletion restrictions.
+
+- Administrator device/customer deletions now record actor email and target details in ActivityLog.
