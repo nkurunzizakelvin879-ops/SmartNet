@@ -21,7 +21,7 @@ def migrate_device_monitoring_columns():
 def scan_registered_devices(app):
     """Check registered IPs within an app context; one scan per cycle."""
     from routes.devices import ping_device
-    from models import Device, Alert
+    from models import Device, Alert, PingSample
     with app.app_context():
         for device in Device.query.filter(Device.ip_address.isnot(None), Device.ip_address != "").all():
             old_status = device.status
@@ -32,6 +32,7 @@ def scan_registered_devices(app):
             if latency is not None:
                 from datetime import datetime
                 device.last_seen = datetime.utcnow()
+            db.session.add(PingSample(device_id=device.id, status=new_status, latency_ms=latency))
             if new_status == "Offline" and old_status != "Offline":
                 db.session.add(Alert(device_id=device.id, device_name=device.name, title="Device offline", message=f"{device.name} ({device.ip_address}) is unreachable.", severity="warning"))
             elif new_status == "Online" and old_status == "Offline":
