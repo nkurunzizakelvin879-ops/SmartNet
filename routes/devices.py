@@ -38,6 +38,21 @@ def add():
         db.session.commit(); flash("Device yongewemo.","success")
     return redirect(url_for("devices.index"))
 
+@bp.post("/<int:item_id>/edit")
+@login_required
+def edit(item_id):
+    d=Device.query.get_or_404(item_id)
+    name=request.form.get("name","").strip(); kind=request.form.get("device_type","").strip(); ip=request.form.get("ip_address","").strip()
+    if ip:
+        try: ipaddress.ip_address(ip)
+        except ValueError: flash("IP address ntabwo yemewe.","danger"); return redirect(url_for("devices.index"))
+    if not name or not kind: flash("Name na Type birakenewe.","danger")
+    else:
+        d.name=name; d.device_type=kind; d.ip_address=ip or None; d.location=request.form.get("location","").strip(); d.notes=request.form.get("notes","").strip()
+        if not ip: d.status="Unknown"; d.latency_ms=None; d.last_seen=None
+        db.session.commit(); flash("Device yavuguruwe neza.","success")
+    return redirect(url_for("devices.index"))
+
 @bp.post("/monitor")
 @login_required
 def monitor():
