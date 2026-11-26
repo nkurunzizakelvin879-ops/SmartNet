@@ -7,6 +7,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required
 from models import Device, Alert, PingSample
 from extensions import db
+from routes.admin import admin_required
 
 bp = Blueprint("devices", __name__)
 
@@ -85,7 +86,7 @@ def status(item_id):
     return redirect(url_for("devices.index"))
 
 @bp.post("/<int:item_id>/delete")
-@login_required
+@admin_required
 def delete(item_id):
     d=Device.query.get_or_404(item_id); db.session.delete(d); db.session.commit()
     flash("Device yasibwe.","info"); return redirect(url_for("devices.index"))
