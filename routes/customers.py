@@ -11,6 +11,9 @@ bp=Blueprint("customers",__name__)
 def index():
     q=request.args.get("q","").strip()
     status=request.args.get("status","")
+    billing_month=request.args.get("billing_month",datetime.utcnow().strftime("%Y-%m"))
+    try: datetime.strptime(billing_month,"%Y-%m")
+    except ValueError: billing_month=datetime.utcnow().strftime("%Y-%m")
     query=Customer.query
     if q:
         query=query.filter(db.or_(Customer.full_name.ilike(f"%{q}%"),Customer.email.ilike(f"%{q}%"),Customer.phone.ilike(f"%{q}%"),Customer.plan.ilike(f"%{q}%")))
@@ -18,7 +21,14 @@ def index():
         query=query.filter_by(status=status)
     customers=query.order_by(Customer.id.desc()).all()
     payments=Payment.query.order_by(Payment.paid_at.desc()).limit(100).all()
-    return render_template("customers.html",customers=customers,payments=payments,q=q,status_filter=status)
+    monthly_payments=Payment.query.filter_by(billing_month=billing_month).all()
+    paid_by_customer={}
+    for p in monthly_payments: paid_by_customer[p.customer_id]=paid_by_customer.get(p.customer_id,0)+p.amount
+    billing_rows=[{"customer":customer,"paid":paid_by_customer.get(customer.id,0),"fee":customer.monthly_fee or 0,"balance":max(0,(customer.monthly_fee or 0)-paid_by_customer.get(customer.id,0))} for customer in customers]
+    billing_total=sum(row["fee"] for row in billing_rows)
+    billing_paid=sum(row["paid"] for row in billing_rows)
+    billing_balance=sum(row["balance"] for row in billing_rows)
+    return render_template("customers.html",customers=customers,payments=payments,q=q,status_filter=status,billing_month=billing_month,billing_rows=billing_rows,billing_total=billing_total,billing_paid=billing_paid,billing_balance=billing_balance)
 
 @bp.post("/add")
 @login_required
