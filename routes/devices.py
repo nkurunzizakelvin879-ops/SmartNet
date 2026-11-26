@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required
-from models import Device
+from models import Device, Alert
 from extensions import db
 
 bp = Blueprint("devices", __name__)
@@ -58,9 +58,15 @@ def edit(item_id):
 def monitor():
     devices=Device.query.filter(Device.ip_address.isnot(None), Device.ip_address != "").all()
     for device in devices:
+        old_status=device.status
         latency=ping_device(device.ip_address)
-        device.latency_ms=latency; device.status="Online" if latency is not None else "Offline"
+        new_status="Online" if latency is not None else "Offline"
+        device.latency_ms=latency; device.status=new_status
         if latency is not None: device.last_seen=datetime.utcnow()
+        if new_status=="Offline" and old_status!="Offline":
+            db.session.add(Alert(device_id=device.id,device_name=device.name,title="Device offline",message=f"{device.name} ({device.ip_address}) is unreachable.",severity="warning"))
+        elif new_status=="Online" and old_status=="Offline":
+            Alert.query.filter_by(device_id=device.id,title="Device offline",resolved_at=None).update({Alert.resolved_at:datetime.utcnow()})
     db.session.commit()
     flash(f"Scan irangiye: {len(devices)} registered IP devices checked.","success")
     return redirect(url_for("devices.index"))
