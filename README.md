@@ -87,3 +87,9 @@ Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular
 - Automatically removes PingSample records older than 30 days after monitoring scans.
 - This maintenance only removes old monitoring samples; it does not remove devices, customers, payments, user accounts, or alert records.
 - The monitor's retention policy limits database growth while keeping a recent history for analytics.
+
+
+## Phase 9: Role-based deletion permissions
+- Staff accounts cannot delete registered devices or customers (including their payment history).
+- Server-side admin authorization protects these delete endpoints; hiding controls in the interface is supplementary only.
+- Added automated tests for staff deletion restrictions.
