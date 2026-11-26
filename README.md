@@ -66,3 +66,11 @@ Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular
 - Prevents admins from deleting their own account or the last remaining admin.
 - Account creation/deletion actions are recorded in ActivityLog.
 - Existing tables/data are preserved; `db.create_all()` creates the new table on startup.
+
+
+## Phase 7: Alerts & notification center
+
+- Offline alerts are generated when a monitored device transitions to Offline, avoiding a new alert every scan.
+- When a previously Offline device returns Online, its open offline alert is resolved.
+- Authenticated notification center displays alert history and allows acknowledgement.
+- Alert data is added without deleting existing records; startup table creation is additive.
