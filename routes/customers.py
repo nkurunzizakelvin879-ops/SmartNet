@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint,render_template,request,redirect,url_for,flash
-from flask_login import login_required
-from models import Customer, Payment
+from flask_login import login_required, current_user
+from models import Customer, Payment, ActivityLog
 from extensions import db
 from routes.admin import admin_required
 bp=Blueprint("customers",__name__)
@@ -68,6 +68,8 @@ def payment(item_id):
 @bp.post("/<int:item_id>/delete")
 @admin_required
 def delete(item_id):
-    c=Customer.query.get_or_404(item_id); db.session.delete(c); db.session.commit()
+    c=Customer.query.get_or_404(item_id)
+    db.session.add(ActivityLog(actor_id=current_user.id,actor_email=current_user.email,action="Deleted customer "+c.full_name+" (customer ID "+str(c.id)+") and payment history"))
+    db.session.delete(c); db.session.commit()
     flash("Umukiriya n'amateka ye ya payment basibwe.","info"); return redirect(url_for("customers.index"))
 customers_bp=bp
