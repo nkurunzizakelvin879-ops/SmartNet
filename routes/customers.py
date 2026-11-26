@@ -75,6 +75,12 @@ def payment(item_id):
         db.session.commit();flash("Payment yanditswe neza.","success")
     return redirect(url_for("customers.index"))
 
+@bp.get("/payment/<int:payment_id>/receipt")
+@login_required
+def receipt(payment_id):
+    payment_record=Payment.query.get_or_404(payment_id)
+    return render_template("payment_receipt.html",payment=payment_record)
+
 @bp.post("/<int:item_id>/delete")
 @admin_required
 def delete(item_id):
