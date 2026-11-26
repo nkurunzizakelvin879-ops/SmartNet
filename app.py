@@ -77,7 +77,8 @@ def create_app(config_overrides=None):
     app.register_blueprint(settings_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(alerts_bp)
-    app.register_blueprint(analytics_bp)\n    app.register_blueprint(security_bp)
+    app.register_blueprint(analytics_bp)
+    app.register_blueprint(security_bp)
     @login_manager.user_loader
     def load_user(uid):
         try: return db.session.get(User, int(uid))
