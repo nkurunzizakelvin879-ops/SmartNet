@@ -31,7 +31,6 @@ def scan_registered_devices(app):
             new_status = "Online" if latency is not None else "Offline"
             device.status = new_status
             if latency is not None:
-                from datetime import datetime
                 device.last_seen = datetime.utcnow()
             db.session.add(PingSample(device_id=device.id, status=new_status, latency_ms=latency))
             if new_status == "Offline" and old_status != "Offline":
