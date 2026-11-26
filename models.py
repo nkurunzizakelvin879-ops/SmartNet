@@ -63,3 +63,12 @@ class Alert(db.Model):
     acknowledged_at = db.Column(db.DateTime, nullable=True)
     resolved_at = db.Column(db.DateTime, nullable=True)
     device = db.relationship("Device", backref=db.backref("alerts", lazy=True))
+
+
+class PingSample(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.Integer, db.ForeignKey("device.id"), nullable=False, index=True)
+    status = db.Column(db.String(20), nullable=False)
+    latency_ms = db.Column(db.Float, nullable=True)
+    sampled_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    device = db.relationship("Device", backref=db.backref("ping_samples", lazy=True, cascade="all, delete-orphan"))
