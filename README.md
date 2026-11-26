@@ -101,3 +101,11 @@ Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular
 - Select a billing month to review each customer's monthly fee, payments received for that month, and remaining balance.
 - Provides totals for billed amount, received payments, and outstanding balance based on registered customer fees and payment entries.
 - This is a simple month-by-month balance estimate, not a formal invoice or accounting system; customers with no monthly fee are not charged automatically.
+
+
+## Phase 12: Printable payment receipts
+- Payment history provides a receipt view for each recorded payment.
+- Receipts display receipt ID, customer, billing month, amount, recording date and notes, and can be printed or saved as PDF through the browser print dialog.
+
+## Dashboard color refresh
+- Dashboard cards and tables use a muted blue-gray palette to reduce stark white surfaces and maintain readable contrast.
