@@ -23,3 +23,6 @@
 
 /* Phase 8: Analytics */
 .analytics-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.analytics-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}.analytics-card strong{font-size:27px;display:block;margin:10px 0}.analytics-card small{color:var(--muted)}.analytics-table{overflow-x:auto}@media(max-width:850px){.analytics-grid{grid-template-columns:1fr}}
+
+/* Phase 11: calmer dashboard palette, avoiding stark white panels */
+.dashboard-page .metric,.dashboard-page .panel{background:#e8eef4;border-color:#d3dee8;box-shadow:0 5px 20px #142b400d;color:#20364b}.dashboard-page .metric small,.dashboard-page .panel .muted,.dashboard-page .health-score span,.dashboard-page .status-summary>div{color:#61778b}.dashboard-page .metric strong,.dashboard-page .status-summary strong{color:#20364b}.dashboard-page .health-track{background:#d4e0ea}.dashboard-page .table-panel table th{background:#dce6ef;color:#51677d}.dashboard-page .table-panel table td{color:#40566c;border-color:#d4e0ea}.dashboard-page .table-panel .empty-state{color:#61778b}.dashboard-page .panel h2{color:#20364b}.dashboard-page .metric-online{background:#e2f1e9;border-color:#c9e4d6}.dashboard-page .metric-offline{background:#f3e6e3;border-color:#e9d0ca}
