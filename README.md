@@ -20,7 +20,7 @@ SmartNet ni Flask app yo gucunga ibikoresho bya network n'abakiriya.
 5. Run `python run.py` and visit http://127.0.0.1:5000
 
 ## Live network monitoring
-Login, open **Devices**, and click **Run network scan**. SmartNet pings only registered, valid IP addresses, using a bounded timeout. The scan stores online/offline status, approximate round-trip latency, and the last successful ping timestamp (UTC). Devices without IP addresses are skipped. A ping failure does not necessarily prove a device is down; firewalls may block ICMP.
+SmartNet runs a background ping scan every 60 seconds by default (configurable using `MONITOR_INTERVAL_SECONDS`). The Devices table refreshes status data approximately every 15 seconds. You can also click **Run network scan** to request an immediate scan. It pings only registered, valid IP addresses, using bounded timeouts, and stores online/offline status, approximate round-trip latency, and last successful ping timestamp (UTC). Devices without IP addresses are skipped. A ping failure does not necessarily prove a device is down; firewalls may block ICMP. Set `MONITORING_ENABLED=0` in `.env` to disable the background scanner.
 
 Monitoring database fields are added through a small, additive startup migration; existing device records and customer data are retained.
 
