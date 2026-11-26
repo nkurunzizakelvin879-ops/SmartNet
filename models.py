@@ -33,3 +33,12 @@ class Customer(db.Model):
     monthly_fee = db.Column(db.Float, default=0)
     status = db.Column(db.String(20), default="Active")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    payments = db.relationship("Payment", backref="customer", cascade="all, delete-orphan", lazy=True)
+
+class Payment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    billing_month = db.Column(db.String(7), nullable=False)  # YYYY-MM
+    paid_at = db.Column(db.DateTime, default=datetime.utcnow)
+    notes = db.Column(db.String(255))
