@@ -4,8 +4,8 @@ import subprocess
 import time
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from flask_login import login_required
-from models import Device, Alert, PingSample
+from flask_login import login_required, current_user
+from models import Device, Alert, PingSample, ActivityLog
 from extensions import db
 from routes.admin import admin_required
 
@@ -88,7 +88,9 @@ def status(item_id):
 @bp.post("/<int:item_id>/delete")
 @admin_required
 def delete(item_id):
-    d=Device.query.get_or_404(item_id); db.session.delete(d); db.session.commit()
+    d=Device.query.get_or_404(item_id)
+    db.session.add(ActivityLog(actor_id=current_user.id,actor_email=current_user.email,action="Deleted device "+d.name+" ("+(d.ip_address or "no IP")+")"))
+    db.session.delete(d); db.session.commit()
     flash("Device yasibwe.","info"); return redirect(url_for("devices.index"))
 
 devices_bp=bp
