@@ -3,7 +3,7 @@
 {% block content %}
 <div class="app-shell">{% include "_sidebar.html" %}<main class="main-area">
 <header class="topbar"><button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button><div><b>Dashboard</b><small>Network overview</small></div><span class="user-pill">{{ user.full_name }}</span></header>
-<div class="page-content"><div class="page-heading"><div><p class="eyebrow">OVERVIEW</p><h1>Network Dashboard</h1><p class="muted">Welcome back. Here's your network overview.</p><span class="live-indicator"><span class="pulse-dot"></span> Live overview <small id="dashLastUpdated">Updating…</small></span></div></div>
+<div class="page-content dashboard-page"><div class="page-heading"><div><p class="eyebrow">OVERVIEW</p><h1>Network Dashboard</h1><p class="muted">Welcome back. Here's your network overview.</p><span class="live-indicator"><span class="pulse-dot"></span> Live overview <small id="dashLastUpdated">Updating…</small></span></div></div>
 <section class="metrics-grid dashboard-metrics">
 <article class="metric"><i class="fa-solid fa-network-wired"></i><small>Total devices</small><strong id="dashTotalDevices">{{ total_devices }}</strong></article>
 <article class="metric metric-online"><i class="fa-solid fa-circle-check"></i><small>Online devices</small><strong id="dashOnline">{{ online_devices }}</strong></article>
