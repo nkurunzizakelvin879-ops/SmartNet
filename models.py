@@ -42,3 +42,11 @@ class Payment(db.Model):
     billing_month = db.Column(db.String(7), nullable=False)  # YYYY-MM
     paid_at = db.Column(db.DateTime, default=datetime.utcnow)
     notes = db.Column(db.String(255))
+
+
+class ActivityLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    actor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    actor_email = db.Column(db.String(160), nullable=False)
+    action = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
