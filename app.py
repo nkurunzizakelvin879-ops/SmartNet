@@ -60,10 +60,12 @@ def create_app(config_overrides=None):
     from routes.devices import devices_bp
     from routes.customers import customers_bp
     from routes.settings import settings_bp
+    from routes.admin import admin_bp
     app.register_blueprint(auth_bp); app.register_blueprint(main_bp)
     app.register_blueprint(devices_bp, url_prefix="/devices")
     app.register_blueprint(customers_bp, url_prefix="/customers")
     app.register_blueprint(settings_bp)
+    app.register_blueprint(admin_bp)
     @login_manager.user_loader
     def load_user(uid):
         try: return db.session.get(User, int(uid))
