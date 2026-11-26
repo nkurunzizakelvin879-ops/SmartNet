@@ -21,15 +21,21 @@ def migrate_device_monitoring_columns():
 def scan_registered_devices(app):
     """Check registered IPs within an app context; one scan per cycle."""
     from routes.devices import ping_device
-    from models import Device
+    from models import Device, Alert
     with app.app_context():
         for device in Device.query.filter(Device.ip_address.isnot(None), Device.ip_address != "").all():
+            old_status = device.status
             latency = ping_device(device.ip_address)
             device.latency_ms = latency
-            device.status = "Online" if latency is not None else "Offline"
+            new_status = "Online" if latency is not None else "Offline"
+            device.status = new_status
             if latency is not None:
                 from datetime import datetime
                 device.last_seen = datetime.utcnow()
+            if new_status == "Offline" and old_status != "Offline":
+                db.session.add(Alert(device_id=device.id, device_name=device.name, title="Device offline", message=f"{device.name} ({device.ip_address}) is unreachable.", severity="warning"))
+            elif new_status == "Online" and old_status == "Offline":
+                Alert.query.filter_by(device_id=device.id, title="Device offline", resolved_at=None).update({Alert.resolved_at: __import__('datetime').datetime.utcnow()})
         db.session.commit()
 
 def monitoring_worker(app):
@@ -61,11 +67,13 @@ def create_app(config_overrides=None):
     from routes.customers import customers_bp
     from routes.settings import settings_bp
     from routes.admin import admin_bp
+    from routes.alerts import alerts_bp
     app.register_blueprint(auth_bp); app.register_blueprint(main_bp)
     app.register_blueprint(devices_bp, url_prefix="/devices")
     app.register_blueprint(customers_bp, url_prefix="/customers")
     app.register_blueprint(settings_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(alerts_bp)
     @login_manager.user_loader
     def load_user(uid):
         try: return db.session.get(User, int(uid))
