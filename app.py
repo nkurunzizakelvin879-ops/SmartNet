@@ -1,6 +1,7 @@
 import secrets
 import threading
 import time
+from datetime import datetime, timedelta
 from sqlalchemy import inspect, text
 from flask import Flask
 from config import Config
@@ -37,6 +38,9 @@ def scan_registered_devices(app):
                 db.session.add(Alert(device_id=device.id, device_name=device.name, title="Device offline", message=f"{device.name} ({device.ip_address}) is unreachable.", severity="warning"))
             elif new_status == "Online" and old_status == "Offline":
                 Alert.query.filter_by(device_id=device.id, title="Device offline", resolved_at=None).update({Alert.resolved_at: __import__('datetime').datetime.utcnow()})
+        # Keep ping history bounded so long-running installations don't grow forever.
+        retention_cutoff = datetime.utcnow() - timedelta(days=30)
+        PingSample.query.filter(PingSample.sampled_at < retention_cutoff).delete(synchronize_session=False)
         db.session.commit()
 
 def monitoring_worker(app):
