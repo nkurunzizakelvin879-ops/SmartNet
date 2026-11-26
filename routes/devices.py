@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required
-from models import Device, Alert
+from models import Device, Alert, PingSample
 from extensions import db
 
 bp = Blueprint("devices", __name__)
@@ -63,6 +63,7 @@ def monitor():
         new_status="Online" if latency is not None else "Offline"
         device.latency_ms=latency; device.status=new_status
         if latency is not None: device.last_seen=datetime.utcnow()
+        db.session.add(PingSample(device_id=device.id,status=new_status,latency_ms=latency))
         if new_status=="Offline" and old_status!="Offline":
             db.session.add(Alert(device_id=device.id,device_name=device.name,title="Device offline",message=f"{device.name} ({device.ip_address}) is unreachable.",severity="warning"))
         elif new_status=="Online" and old_status=="Offline":
