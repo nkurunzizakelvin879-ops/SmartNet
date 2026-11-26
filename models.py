@@ -72,3 +72,17 @@ class PingSample(db.Model):
     latency_ms = db.Column(db.Float, nullable=True)
     sampled_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
     device = db.relationship("Device", backref=db.backref("ping_samples", lazy=True, cascade="all, delete-orphan"))
+
+
+class LoginHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(160), nullable=False, index=True)
+    success = db.Column(db.Boolean, nullable=False, default=False)
+    ip_address = db.Column(db.String(64))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+class LoginAttempt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(160), nullable=False, index=True)
+    ip_address = db.Column(db.String(64), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
