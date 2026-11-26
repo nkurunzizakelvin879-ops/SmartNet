@@ -1,8 +1,13 @@
 import secrets
+import threading
+import time
 from sqlalchemy import inspect, text
 from flask import Flask
 from config import Config
 from extensions import db, login_manager, csrf
+
+_monitor_thread_started = False
+_monitor_lock = threading.Lock()
 
 def migrate_device_monitoring_columns():
     """Non-destructively add monitoring columns to existing installations."""
@@ -12,6 +17,37 @@ def migrate_device_monitoring_columns():
     if "latency_ms" not in existing: db.session.execute(text("ALTER TABLE device ADD COLUMN latency_ms FLOAT"))
     if "last_seen" not in existing: db.session.execute(text("ALTER TABLE device ADD COLUMN last_seen DATETIME"))
     db.session.commit()
+
+def scan_registered_devices(app):
+    """Check registered IPs within an app context; one scan per cycle."""
+    from routes.devices import ping_device
+    from models import Device
+    with app.app_context():
+        for device in Device.query.filter(Device.ip_address.isnot(None), Device.ip_address != "").all():
+            latency = ping_device(device.ip_address)
+            device.latency_ms = latency
+            device.status = "Online" if latency is not None else "Offline"
+            if latency is not None:
+                from datetime import datetime
+                device.last_seen = datetime.utcnow()
+        db.session.commit()
+
+def monitoring_worker(app):
+    interval = max(15, int(app.config.get("MONITOR_INTERVAL_SECONDS", 60)))
+    while True:
+        try: scan_registered_devices(app)
+        except Exception as exc:
+            app.logger.exception("SmartNet background monitor scan failed: %s", exc)
+        time.sleep(interval)
+
+def start_monitoring_worker(app):
+    global _monitor_thread_started
+    if not app.config.get("MONITORING_ENABLED", True) or app.testing: return
+    with _monitor_lock:
+        if _monitor_thread_started: return
+        thread = threading.Thread(target=monitoring_worker, args=(app,), name="SmartNetMonitor", daemon=True)
+        thread.start()
+        _monitor_thread_started = True
 
 def create_app(config_overrides=None):
     app = Flask(__name__)
@@ -43,4 +79,5 @@ def create_app(config_overrides=None):
                 print("\nSmartNet initial admin account")
                 print(f"Email: {app.config['ADMIN_EMAIL']}")
                 print(f"Temporary password (save it now): {initial_password}\n")
+    start_monitoring_worker(app)
     return app
