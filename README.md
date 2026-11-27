@@ -1,60 +1,111 @@
 # SmartNet — Network Management
 
-SmartNet ni urubuga rwa Flask rwo gucunga ibikoresho bya network n'abakiriya.
+SmartNet ni Flask app yo gucunga ibikoresho bya network n'abakiriya.
 
 ## Ibirimo
 - Login na dashboard ya admin
-- Device inventory: kongeramo, kureba, guhindura status no gusiba devices
-- Customer management: kongeramo, kureba no gusiba abakiriya
-- Account settings: guhindura izina, email na password
-- Monthly fee summary (RWF)
-- SQLite ku buryo busanzwe; MySQL ishobora gukoreshwa ukoresheje `DATABASE_URL`
-- CSRF protection ku mafomu yose ya POST
-- Session cookies zirinzwe na HTTP-only na SameSite
+- Device inventory: add, status, delete
+- Customer management: add, view, delete
+- Account settings
+- Monthly fees (RWF)
+- SQLite by default; optional MySQL via `DATABASE_URL`
+- CSRF protection and protected session cookies
+- Network ping scan: online/offline, latency (ms), last successful check (UTC)
 
-## Gukoresha kuri Windows
-1. Kuramo ZIP cyangwa clone repository, hanyuma fungura PowerShell muri folder ya `SmartNet`.
-2. Kora virtual environment:
-   ```powershell
-   py -m venv .venv
-   .\.venv\Scripts\Activate.ps1
-   ```
-3. Shyiramo dependencies:
-   ```powershell
-   python -m pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
-4. Kora kopi ya environment file:
-   ```powershell
-   Copy-Item .env.example .env
-   ```
-5. Fungura `.env`, ushyiremo `SECRET_KEY` ikomeye. Ushobora kuyibyaza ukoresheje:
-   ```powershell
-   python -c "import secrets; print(secrets.token_hex(32))"
-   ```
-   Ushyireho na `ADMIN_PASSWORD` mbere yo gutangira bwa mbere niba ushaka guhitamo password ya admin. Ntushyireho password yoroshye.
-6. Tangiza:
-   ```powershell
-   python run.py
-   ```
-7. Fungura http://127.0.0.1:5000
+## Windows setup
+1. Clone or download the project and open PowerShell in its folder.
+2. `py -m venv .venv` then `..venv\Scripts\Activate.ps1`
+3. `pip install -r requirements.txt`
+4. Copy `.env.example` to `.env`; configure a strong `SECRET_KEY` and optionally `ADMIN_PASSWORD`.
+5. Run `python run.py` and visit http://127.0.0.1:5000
 
-## Konti ya mbere ya admin
-- Email isanzwe: `admin@smartnet.local` (ushobora kuyihindura ukoresheje `ADMIN_EMAIL` muri `.env`).
-- Niba `ADMIN_PASSWORD` itashyizweho, SmartNet ikora password y'agateganyo ikomeye ikayerekana muri terminal bwa mbere gusa. Yibike, winjire, hanyuma uhite uyihindura muri **Settings**.
-- Niba admin asanzwe ari muri database, SmartNet ntihindura password ye cyangwa ngo isibe amakuru ye.
+## Live network monitoring
+SmartNet runs a background ping scan every 60 seconds by default (configurable using `MONITOR_INTERVAL_SECONDS`). The Devices table refreshes status data approximately every 15 seconds. You can also click **Run network scan** to request an immediate scan. It pings only registered, valid IP addresses, using bounded timeouts, and stores online/offline status, approximate round-trip latency, and last successful ping timestamp (UTC). Devices without IP addresses are skipped. A ping failure does not necessarily prove a device is down; firewalls may block ICMP. Set `MONITORING_ENABLED=0` in `.env` to disable the background scanner.
+
+Monitoring database fields are added through a small, additive startup migration; existing device records and customer data are retained.
+
+## Initial administrator
+Default email: `admin@smartnet.local`. Set `ADMIN_PASSWORD` before first launch or save the temporary password printed to the terminal.
 
 ## MySQL (optional)
-Kora database yawe, hanyuma shyira `DATABASE_URL` muri `.env`, urugero:
-`mysql+pymysql://username:password@127.0.0.1:3306/smartnet_db?charset=utf8mb4`
-Encode special characters ziri muri password ya database.
+Set `DATABASE_URL`, for example: `mysql+pymysql://username:password@127.0.0.1:3306/smartnet_db?charset=utf8mb4`.
 
-## Igenamiterere rya production
-- Shyiraho `SECRET_KEY` ikomeye kandi uyigire ibanga.
-- Shyiraho `COOKIE_SECURE=1` gusa igihe urubuga rukorera kuri HTTPS.
-- `FLASK_DEBUG` isanzwe ni `0`; ntukayishyire kuri `1` kuri public server.
-- Koresha WSGI server ibereye production; Flask development server igenewe development gusa.
-- Bika backup ya database buri gihe mbere yo gukora migrations cyangwa impinduka zikomeye.
+## Security / deployment
+Use a strong secret, HTTPS for secure cookies, a production WSGI server, regular backups, and only monitor devices you administer or have permission to check. The Flask development server is for local development.
 
-## Ibitari byashyirwamo
-Device status muri iyi version ihindurwa n'umukoresha; automatic ping/live monitoring, admin user management na database migrations biracyategereje. Background images, Font Awesome na Google Fonts bishobora gusaba internet.
+
+## Phase 3: Live dashboard overview
+
+- Dashboard network-health percentage and status counts are recalculated from registered devices.
+- Dashboard totals and monthly active-customer revenue update automatically approximately every 15 seconds without reloading the page.
+- A live-updated timestamp indicates when the dashboard refresh succeeded.
+- The dashboard overview endpoint is authenticated and returns summary JSON for the logged-in user.
+
+
+## Phase 4: Device management improvements
+
+- Search registered devices by name, IP address, type, location, or row text.
+- Filter the table by status and device type.
+- Edit device name, type, IP address, location, and notes.
+- Existing manual scan and periodic status refresh remain available.
+
+
+## Phase 5: Customer & billing improvements
+
+- Search and filter customers by status and key contact fields.
+- Edit customer details and monthly fee/status.
+- Record payments by billing month, amount and notes; view the latest 100 payment records.
+- Payment records are stored separately from customer details. Existing database data is preserved; SQLAlchemy `create_all()` creates the new table on startup.
+- Customer deletion also deletes their associated payment history. Payment entries are not automatically treated as invoices or calculated arrears.
+
+
+## Phase 6: Admin accounts and activity
+
+- Admin-only account management page to create Admin or Staff accounts and delete accounts.
+- Server-enforced admin role check on this page.
+- Prevents admins from deleting their own account or the last remaining admin.
+- Account creation/deletion actions are recorded in ActivityLog.
+- Existing tables/data are preserved; `db.create_all()` creates the new table on startup.
+
+
+## Phase 7: Alerts & notification center
+
+- Offline alerts are generated when a monitored device transitions to Offline, avoiding a new alert every scan.
+- When a previously Offline device returns Online, its open offline alert is resolved.
+- Authenticated notification center displays alert history and allows acknowledgement.
+- Alert data is added without deleting existing records; startup table creation is additive.
+
+
+## Phase 8: Network analytics
+
+- Ping samples are recorded from both background monitoring and manual scans (including failed checks).
+- Authenticated analytics page summarizes the last 24 hours, per-device availability, average latency, and historical sample trends.
+- Analytics samples are stored in PingSample and automatically pruned after 30 days to keep database growth bounded. The 24-hour analytics report remains unchanged.
+
+
+## Monitoring history maintenance
+- Automatically removes PingSample records older than 30 days after monitoring scans.
+- This maintenance only removes old monitoring samples; it does not remove devices, customers, payments, user accounts, or alert records.
+- The monitor's retention policy limits database growth while keeping a recent history for analytics.
+
+
+## Phase 9: Role-based deletion permissions
+- Staff accounts cannot delete registered devices or customers (including their payment history).
+- Server-side admin authorization protects these delete endpoints; hiding controls in the interface is supplementary only.
+- Added automated tests for staff deletion restrictions.
+
+- Administrator device/customer deletions now record actor email and target details in ActivityLog.
+
+
+## Phase 10: Monthly billing overview
+- Select a billing month to review each customer's monthly fee, payments received for that month, and remaining balance.
+- Provides totals for billed amount, received payments, and outstanding balance based on registered customer fees and payment entries.
+- This is a simple month-by-month balance estimate, not a formal invoice or accounting system; customers with no monthly fee are not charged automatically.
+
+
+## Phase 12: Printable payment receipts
+- Payment history provides a receipt view for each recorded payment.
+- Receipts display receipt ID, customer, billing month, amount, recording date and notes, and can be printed or saved as PDF through the browser print dialog.
+
+## Dashboard color refresh
+- Dashboard cards and tables use a muted blue-gray palette to reduce stark white surfaces and maintain readable contrast.

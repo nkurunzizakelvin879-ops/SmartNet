@@ -2,6 +2,7 @@ import unittest
 
 from app import create_app
 from extensions import db
+from models import User, Device, Customer
 
 
 class SmartNetAuthTests(unittest.TestCase):
@@ -45,6 +46,34 @@ class SmartNetAuthTests(unittest.TestCase):
         }, follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Network Dashboard", response.data)
+
+
+    def login_as_staff(self):
+        with self.app.app_context():
+            staff = User(full_name="Test Staff", email="staff@smartnet.local", role="staff")
+            staff.set_password("StaffPassword123!")
+            db.session.add(staff)
+            device = Device(name="Test Router", device_type="Router", ip_address=None)
+            customer = Customer(full_name="Test Customer", monthly_fee=10)
+            db.session.add_all([device, customer])
+            db.session.commit()
+            device_id, customer_id = device.id, customer.id
+        self.client.post("/login", data={"email":"staff@smartnet.local","password":"StaffPassword123!"})
+        return device_id, customer_id
+
+    def test_staff_cannot_delete_device(self):
+        device_id, _ = self.login_as_staff()
+        response = self.client.post(f"/devices/{device_id}/delete", follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        with self.app.app_context():
+            self.assertIsNotNone(db.session.get(Device, device_id))
+
+    def test_staff_cannot_delete_customer(self):
+        _, customer_id = self.login_as_staff()
+        response = self.client.post(f"/customers/{customer_id}/delete", follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        with self.app.app_context():
+            self.assertIsNotNone(db.session.get(Customer, customer_id))
 
     def test_logout_requires_post(self):
         self.client.post("/login", data={

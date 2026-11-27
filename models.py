@@ -2,29 +2,87 @@ from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db
+
 class User(UserMixin, db.Model):
-    id=db.Column(db.Integer, primary_key=True)
-    full_name=db.Column(db.String(120), nullable=False)
-    email=db.Column(db.String(160), unique=True, nullable=False)
-    password_hash=db.Column(db.String(255), nullable=False)
-    role=db.Column(db.String(30), default="admin")
-    def set_password(self,p): self.password_hash=generate_password_hash(p)
-    def check_password(self,p): return check_password_hash(self.password_hash,p)
+    id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(160), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(30), default="admin")
+    def set_password(self, p): self.password_hash = generate_password_hash(p)
+    def check_password(self, p): return check_password_hash(self.password_hash, p)
+
 class Device(db.Model):
-    id=db.Column(db.Integer, primary_key=True)
-    name=db.Column(db.String(120), nullable=False)
-    device_type=db.Column(db.String(50), nullable=False)
-    ip_address=db.Column(db.String(45))
-    location=db.Column(db.String(160))
-    status=db.Column(db.String(20), default="Unknown", nullable=False)
-    notes=db.Column(db.Text)
-    created_at=db.Column(db.DateTime, default=datetime.utcnow)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    device_type = db.Column(db.String(50), nullable=False)
+    ip_address = db.Column(db.String(45))
+    location = db.Column(db.String(160))
+    status = db.Column(db.String(20), default="Unknown", nullable=False)
+    notes = db.Column(db.Text)
+    latency_ms = db.Column(db.Float, nullable=True)
+    last_seen = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 class Customer(db.Model):
-    id=db.Column(db.Integer, primary_key=True)
-    full_name=db.Column(db.String(120), nullable=False)
-    email=db.Column(db.String(160))
-    phone=db.Column(db.String(40))
-    plan=db.Column(db.String(100))
-    monthly_fee=db.Column(db.Float, default=0)
-    status=db.Column(db.String(20), default="Active")
-    created_at=db.Column(db.DateTime, default=datetime.utcnow)
+    id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(160))
+    phone = db.Column(db.String(40))
+    plan = db.Column(db.String(100))
+    monthly_fee = db.Column(db.Float, default=0)
+    status = db.Column(db.String(20), default="Active")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    payments = db.relationship("Payment", backref="customer", cascade="all, delete-orphan", lazy=True)
+
+class Payment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    billing_month = db.Column(db.String(7), nullable=False)  # YYYY-MM
+    paid_at = db.Column(db.DateTime, default=datetime.utcnow)
+    notes = db.Column(db.String(255))
+
+
+class ActivityLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    actor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    actor_email = db.Column(db.String(160), nullable=False)
+    action = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Alert(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.Integer, db.ForeignKey("device.id", ondelete="SET NULL"), nullable=True)
+    device_name = db.Column(db.String(120), nullable=False)
+    title = db.Column(db.String(160), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    severity = db.Column(db.String(20), default="warning", nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    acknowledged_at = db.Column(db.DateTime, nullable=True)
+    resolved_at = db.Column(db.DateTime, nullable=True)
+    device = db.relationship("Device", backref=db.backref("alerts", lazy=True))
+
+
+class PingSample(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.Integer, db.ForeignKey("device.id"), nullable=False, index=True)
+    status = db.Column(db.String(20), nullable=False)
+    latency_ms = db.Column(db.Float, nullable=True)
+    sampled_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    device = db.relationship("Device", backref=db.backref("ping_samples", lazy=True, cascade="all, delete-orphan"))
+
+
+class LoginHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(160), nullable=False, index=True)
+    success = db.Column(db.Boolean, nullable=False, default=False)
+    ip_address = db.Column(db.String(64))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+class LoginAttempt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(160), nullable=False, index=True)
+    ip_address = db.Column(db.String(64), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
