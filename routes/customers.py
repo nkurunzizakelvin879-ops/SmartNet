@@ -1,10 +1,29 @@
+import csv
+import io
 from datetime import datetime
-from flask import Blueprint,render_template,request,redirect,url_for,flash
+from flask import Blueprint,render_template,request,redirect,url_for,flash,make_response
 from flask_login import login_required, current_user
 from models import Customer, Payment, ActivityLog
 from extensions import db
 from routes.admin import admin_required
 bp=Blueprint("customers",__name__)
+
+def filtered_customers(q="", status=""):
+    query=Customer.query
+    if q:
+        query=query.filter(db.or_(Customer.full_name.ilike(f"%{q}%"),Customer.email.ilike(f"%{q}%"),Customer.phone.ilike(f"%{q}%"),Customer.plan.ilike(f"%{q}%")))
+    if status in ("Active","Suspended"):
+        query=query.filter_by(status=status)
+    return query.order_by(Customer.id.desc())
+
+def csv_response(filename, rows):
+    stream=io.StringIO()
+    writer=csv.writer(stream)
+    writer.writerows(rows)
+    response=make_response("\ufeff"+stream.getvalue())
+    response.headers["Content-Type"]="text/csv; charset=utf-8"
+    response.headers["Content-Disposition"]=f'attachment; filename="{filename}"'
+    return response
 
 @bp.get("/")
 @login_required
@@ -14,12 +33,7 @@ def index():
     billing_month=request.args.get("billing_month",datetime.utcnow().strftime("%Y-%m"))
     try: datetime.strptime(billing_month,"%Y-%m")
     except ValueError: billing_month=datetime.utcnow().strftime("%Y-%m")
-    query=Customer.query
-    if q:
-        query=query.filter(db.or_(Customer.full_name.ilike(f"%{q}%"),Customer.email.ilike(f"%{q}%"),Customer.phone.ilike(f"%{q}%"),Customer.plan.ilike(f"%{q}%")))
-    if status in ("Active","Suspended"):
-        query=query.filter_by(status=status)
-    customers=query.order_by(Customer.id.desc()).all()
+    customers=filtered_customers(q,status).all()
     payments=Payment.query.order_by(Payment.paid_at.desc()).limit(100).all()
     monthly_payments=Payment.query.filter_by(billing_month=billing_month).all()
     paid_by_customer={}
@@ -29,6 +43,35 @@ def index():
     billing_paid=sum(row["paid"] for row in billing_rows)
     billing_balance=sum(row["balance"] for row in billing_rows)
     return render_template("customers.html",customers=customers,payments=payments,q=q,status_filter=status,billing_month=billing_month,billing_rows=billing_rows,billing_total=billing_total,billing_paid=billing_paid,billing_balance=billing_balance)
+
+@bp.get("/export")
+@login_required
+def export_customers():
+    q=request.args.get("q","").strip()
+    status=request.args.get("status","")
+    customers=filtered_customers(q,status).all()
+    rows=[["Customer ID","Full name","Email","Phone","Plan","Monthly fee (RWF)","Status","Created"]]
+    rows.extend([[c.id,c.full_name,c.email or "",c.phone or "",c.plan or "",c.monthly_fee or 0,c.status,c.created_at.strftime("%Y-%m-%d") if c.created_at else ""] for c in customers])
+    return csv_response("smartnet_customers.csv",rows)
+
+@bp.get("/export-billing")
+@login_required
+def export_billing():
+    q=request.args.get("q","").strip()
+    status=request.args.get("status","")
+    month=request.args.get("billing_month",datetime.utcnow().strftime("%Y-%m"))
+    try: datetime.strptime(month,"%Y-%m")
+    except ValueError: month=datetime.utcnow().strftime("%Y-%m")
+    customers=filtered_customers(q,status).all()
+    payments=Payment.query.filter_by(billing_month=month).all()
+    paid_by_customer={}
+    for p in payments: paid_by_customer[p.customer_id]=paid_by_customer.get(p.customer_id,0)+p.amount
+    rows=[["Billing month",month],[],["Customer ID","Customer","Status","Monthly fee (RWF)","Paid (RWF)","Balance (RWF)"]]
+    for c in customers:
+        fee=c.monthly_fee or 0
+        paid=paid_by_customer.get(c.id,0)
+        rows.append([c.id,c.full_name,c.status,fee,paid,max(0,fee-paid)])
+    return csv_response(f"smartnet_billing_{month}.csv",rows)
 
 @bp.post("/add")
 @login_required
